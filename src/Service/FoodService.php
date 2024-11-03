@@ -65,4 +65,11 @@ class FoodService
 
         return $item;
     }
+
+    public function removeItem(string $type, int $itemId): void
+    {        
+        $collection = $this->storage->get($type);
+        $collection->remove($itemId);        
+        $this->storage->save($type, $collection);
+    }    
 }

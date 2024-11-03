@@ -42,4 +42,13 @@ class FoodController extends AbstractController
 
         return new JsonResponse($result, JsonResponse::HTTP_CREATED);
     }
+
+    /**
+     * @Route("/api/food/{type}/{id}", methods={"DELETE"})
+     */
+    public function remove(string $type, int $id): JsonResponse
+    {
+        $this->foodService->removeItem($type, $id);
+        return new JsonResponse(['status' => 'success', 'message' => "Item with ID $id removed from $type"], JsonResponse::HTTP_OK);
+    }    
 }
