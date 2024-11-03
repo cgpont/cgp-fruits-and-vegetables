@@ -5,6 +5,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     app.food_data_file: '%kernel.project_dir%/request.json'
+    app.food_data_storage: '%kernel.project_dir%/storage/storage.json'
 
 services:
     # default configuration for services in *this* file
@@ -26,4 +27,9 @@ services:
 
     App\Service\FoodService:
         arguments:
+            $storage: '@App\Service\InFileStorage'
+
+    App\Service\InFileStorage:
+        arguments:
             $dataFilePath: '%app.food_data_file%'
+            $dataStoragePath: '%app.food_data_storage%'

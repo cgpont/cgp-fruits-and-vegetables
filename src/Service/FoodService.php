@@ -4,51 +4,24 @@ namespace App\Service;
 
 use App\Collection\FruitsCollection;
 use App\Collection\VegetablesCollection;
+use App\Service\StorageInterface;
 
 class FoodService
 {
     private StorageInterface $storage;
-    private string $dataFilePath;
 
-    public function __construct(StorageInterface $storage, string $dataFilePath)
+    public function __construct(StorageInterface $storage)
     {
         $this->storage = $storage;
-        $this->dataFilePath = $dataFilePath;
-    }
-
-    public function processJson(string $filePath): void
-    {
-        $data = json_decode(file_get_contents($filePath), true);
-        $fruits = new FruitsCollection();
-        $vegetables = new VegetablesCollection();
-
-        foreach ($data as $item) {
-            switch ($item['type']) {
-                case 'fruit':
-                    $fruits->add($item);
-                    break;
-                case 'vegetable':
-                    $vegetables->add($item);
-                    break;
-                default:
-                    $error = "Unkown food type";
-                    break;
-            }
-        }
-
-        $this->storage->save('fruits', $fruits);
-        $this->storage->save('vegetables', $vegetables);
     }
 
     public function getItems(string $type, string $name = '', string $unit = 'g'): array
     {
-
-        $this->processJson($this->dataFilePath);
-
         // Retrieve the collection based on type (e.g., 'fruits' or 'vegetables')
-        $collection = $this->storage->get($type);
+        $collections = $this->storage->getAllData();        
+        $collection = $collections[$type] ?? null;
         if (!$collection) {
-            return []; 
+            return [];
         }
 
         // Search the collection by name if provided
@@ -62,7 +35,8 @@ class FoodService
         return $items;
     }
 
-    private function convertItemsUnitToKgs (Array $items) {
+    private function convertItemsUnitToKgs(array $items): array
+    {
         return array_map(function($item) {
             $item['quantity'] = $item['quantity'] / 1000;
             $item['unit'] = 'kg';
@@ -70,4 +44,25 @@ class FoodService
         }, $items);
     }
 
+    public function addItem(array $item): array
+    {
+        switch ($item['type']) {
+            case 'fruit':
+                $collection = $this->storage->get('fruits') ?? new FruitsCollection();
+                $collection->add($item);
+                $this->storage->save('fruits', $collection);
+                break;
+
+            case 'vegetable':
+                $collection = $this->storage->get('vegetables') ?? new VegetablesCollection();
+                $collection->add($item);
+                $this->storage->save('vegetables', $collection);
+                break;
+
+            default:
+                throw new \InvalidArgumentException("Unknown food type: " . $item['type']);
+        }
+
+        return $item;
+    }
 }
