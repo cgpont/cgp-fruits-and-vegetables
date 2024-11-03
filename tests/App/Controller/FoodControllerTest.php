@@ -2,100 +2,134 @@
 
 namespace App\Tests\Controller;
 
-use App\Controller\FoodController;
-use App\Service\FoodService;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class FoodControllerTest extends WebTestCase
 {
-    private $foodService;
-    private $foodController;
-
-    protected function setUp(): void
+    // Test for the GET /api/food endpoint with valid and invalid inputs
+    public function testListWithInvalidType()
     {
-        // Mock the FoodService dependency
-        $this->foodService = $this->createMock(FoodService::class);
+        $client = static::createClient();
+        $client->request('GET', '/api/food?type=invalid_type');
 
-        // Instantiate the FoodController with the mocked FoodService
-        $this->foodController = new FoodController($this->foodService);
+        $this->assertEquals(Response::HTTP_BAD_REQUEST, $client->getResponse()->getStatusCode());
+        $this->assertJson($client->getResponse()->getContent());
+
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertEquals('error', $responseData['status']);
+        $this->assertEquals('Type must be either "fruits" or "vegetables".', $responseData['message']);
     }
 
-    public function testListReturnsAllFruitsByDefault()
+    public function testListWithInvalidUnit()
     {
-        // Mock data returned by FoodService
-        $mockResults = [
-            ['id' => 1, 'name' => 'Apple', 'quantity' => 2000, 'unit' => 'g'],
-            ['id' => 2, 'name' => 'Banana', 'quantity' => 1000, 'unit' => 'g']
-        ];
+        $client = static::createClient();
+        $client->request('GET', '/api/food?type=fruits&unit=invalid_unit');
 
-        // Configure the mocked service to return $mockResults for getItems
-        $this->foodService->expects($this->once())
-            ->method('getItems')
-            ->with('fruits', '', 'g')
-            ->willReturn($mockResults);
+        $this->assertEquals(Response::HTTP_BAD_REQUEST, $client->getResponse()->getStatusCode());
+        $this->assertJson($client->getResponse()->getContent());
 
-        // Create a request with no parameters (defaults will apply)
-        $request = new Request();
-
-        // Call the list method
-        $response = $this->foodController->list($request);
-
-        // Assert that the response is a JsonResponse with the expected data
-        $this->assertInstanceOf(JsonResponse::class, $response);
-        $this->assertEquals(JsonResponse::HTTP_OK, $response->getStatusCode());
-        $this->assertEquals($mockResults, json_decode($response->getContent(), true));
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertEquals('error', $responseData['status']);
+        $this->assertEquals('Type must be either "g" or "kg".', $responseData['message']);
     }
 
-    public function testListFiltersByName()
+    public function testListWithValidTypeAndUnit()
     {
-        // Mock data returned by FoodService when searching for "Apple"
-        $mockResults = [
-            ['id' => 1, 'name' => 'Apple', 'quantity' => 2000, 'unit' => 'g']
-        ];
+        $client = static::createClient();
+        $client->request('GET', '/api/food?type=fruits&unit=g');
 
-        // Configure the mocked service to return filtered results
-        $this->foodService->expects($this->once())
-            ->method('getItems')
-            ->with('fruits', 'Apple', 'g')
-            ->willReturn($mockResults);
-
-        // Create a request with the name filter
-        $request = new Request(['name' => 'Apple']);
-
-        // Call the list method
-        $response = $this->foodController->list($request);
-
-        // Assert that the response is a JsonResponse with the expected filtered data
-        $this->assertInstanceOf(JsonResponse::class, $response);
-        $this->assertEquals(JsonResponse::HTTP_OK, $response->getStatusCode());
-        $this->assertEquals($mockResults, json_decode($response->getContent(), true));
+        $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+        $this->assertJson($client->getResponse()->getContent());
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        
+        $this->assertIsArray($responseData);
     }
 
-    public function testListConvertsToKilograms()
+    // Test for the POST /api/food endpoint with valid and invalid input
+    public function testAddItemWithValidInput()
     {
-        // Mock data with quantities in kilograms
-        $mockResultsInKg = [
-            ['id' => 1, 'name' => 'Apple', 'quantity' => 2, 'unit' => 'kg'],
-            ['id' => 2, 'name' => 'Banana', 'quantity' => 1, 'unit' => 'kg']
+        $client = static::createClient();
+
+        $data = [
+            'id' => 1,
+            'name' => 'Apple',
+            'type' => 'fruit',
+            'quantity' => 500,
+            'unit' => 'g',
         ];
 
-        // Configure the mocked service to return results converted to kilograms
-        $this->foodService->expects($this->once())
-            ->method('getItems')
-            ->with('fruits', '', 'kg')
-            ->willReturn($mockResultsInKg);
+        $client->request('POST', '/api/food', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($data));
 
-        // Create a request with the unit set to kg
-        $request = new Request(['unit' => 'kg']);
+        $this->assertEquals(Response::HTTP_CREATED, $client->getResponse()->getStatusCode());
+        $this->assertJson($client->getResponse()->getContent());
 
-        // Call the list method
-        $response = $this->foodController->list($request);
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertEquals($data['id'], $responseData['id']);
+    }
 
-        // Assert that the response contains quantities converted to kilograms
-        $this->assertInstanceOf(JsonResponse::class, $response);
-        $this->assertEquals(JsonResponse::HTTP_OK, $response->getStatusCode());
-        $this->assertEquals($mockResultsInKg, json_decode($response->getContent(), true));
+    public function testAddItemWithInvalidInput()
+    {
+        $client = static::createClient();
+
+        $data = [
+            'id' => 'invalid_id', // Invalid ID
+            'name' => 'Apple',
+            'type' => 'fruit',
+            'quantity' => 500,
+            'unit' => 'g',
+        ];
+
+        $client->request('POST', '/api/food', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($data));
+
+        $this->assertEquals(Response::HTTP_BAD_REQUEST, $client->getResponse()->getStatusCode());
+        $this->assertJson($client->getResponse()->getContent());
+
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('errors', $responseData);
+    }
+
+    // Test for the DELETE /api/food/{type}/{id} endpoint with valid and invalid types
+    public function testRemoveWithValidType()
+    {
+        $client = static::createClient();
+
+        // Assume ID 1 exists in the database
+        $client->request('DELETE', '/api/food/fruits/1');
+
+        $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+        $this->assertJson($client->getResponse()->getContent());
+
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertEquals('success', $responseData['status']);
+        $this->assertStringContainsString('Item with ID 1 removed from fruits', $responseData['message']);
+    }
+
+    public function testRemoveWithInvalidType()
+    {
+        $client = static::createClient();
+
+        $client->request('DELETE', '/api/food/invadlid_type/1');
+
+        $this->assertEquals(Response::HTTP_BAD_REQUEST, $client->getResponse()->getStatusCode());
+        $this->assertJson($client->getResponse()->getContent());
+
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertEquals('error', $responseData['status']);
+        $this->assertEquals('Type must be either "fruits" or "vegetables".', $responseData['message']);
+    }
+
+    public function testRemoveNonExistentItem()
+    {
+        $client = static::createClient();
+
+        $client->request('DELETE', '/api/food/fruits/999');
+
+        $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+        $this->assertJson($client->getResponse()->getContent());
+
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertEquals('success', $responseData['status']);
+        $this->assertStringContainsString('Item with ID 999 removed from fruits', $responseData['message']);
     }
 }
