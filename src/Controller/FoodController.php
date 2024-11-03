@@ -34,7 +34,7 @@ class FoodController extends AbstractController
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
         
-        $unit = $request->query->get('unit', 'g');
+        $unit = $request->query->get('unit', AppConfig::DEFAULT_UNIT);
         if (!in_array($unit, AppConfig::VALID_UNITS)) {
             return new JsonResponse([
                 'status' => 'error',

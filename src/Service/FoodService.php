@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Config\AppConfig;
 use App\Collection\FruitsCollection;
 use App\Collection\VegetablesCollection;
 use App\Service\StorageInterface;
@@ -15,7 +16,7 @@ class FoodService
         $this->storage = $storage;
     }
 
-    public function getItems(string $type, string $name = '', string $unit = 'g'): array
+    public function getItems(string $type, string $name = '', string $unit = AppConfig::DEFAULT_UNIT): array
     {
         // Retrieve the collection based on type (e.g., 'fruits' or 'vegetables')
         $collections = $this->storage->getAllData();        
