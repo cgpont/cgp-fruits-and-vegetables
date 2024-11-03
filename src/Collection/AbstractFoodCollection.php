@@ -2,6 +2,8 @@
 
 namespace App\Collection;
 
+use App\Config\AppConfig;
+
 abstract class AbstractFoodCollection
 {
     protected array $items = [];
@@ -17,6 +19,7 @@ abstract class AbstractFoodCollection
         // Ensure all quantities are stored in grams
         $item['quantity'] = $this->normalizeToGrams($item['quantity'], $item['unit']);
         $item['type'] = $this->type;
+        $item['unit'] = AppConfig::DEFAULT_UNIT;
         $this->items[] = $item;
     }
 
