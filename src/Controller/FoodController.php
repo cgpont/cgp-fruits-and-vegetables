@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Config\AppConfig;
 use App\Service\FoodService;
 use App\Service\FoodInputValidator;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,18 +27,18 @@ class FoodController extends AbstractController
     public function list(Request $request): JsonResponse
     {
         $type = $request->query->get('type');
-        if (!in_array($type, ['fruits', 'vegetables'])) {
+        if (!in_array($type, AppConfig::VALID_TYPES)) {
             return new JsonResponse([
                 'status' => 'error',
-                'message' => 'Type must be either "fruits" or "vegetables".'
+                'message' => 'Type must be one of: ' . implode(', ', AppConfig::VALID_TYPES) . '.'
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
         
         $unit = $request->query->get('unit', 'g');
-        if (!in_array($unit, ['g', 'kg'])) {
+        if (!in_array($unit, AppConfig::VALID_UNITS)) {
             return new JsonResponse([
                 'status' => 'error',
-                'message' => 'Type must be either "g" or "kg".'
+                'message' => 'Unit must be one of: ' . implode(', ', AppConfig::VALID_UNITS) . '.'
             ], JsonResponse::HTTP_BAD_REQUEST);
         }        
 
@@ -73,10 +74,10 @@ class FoodController extends AbstractController
      */
     public function remove(string $type, int $id): JsonResponse
     {
-        if (!in_array($type, ['fruits', 'vegetables'])) {
+        if (!in_array($type, AppConfig::VALID_TYPES)) {
             return new JsonResponse([
                 'status' => 'error',
-                'message' => 'Type must be either "fruits" or "vegetables".'
+                'message' => 'Type must be one of: ' . implode(', ', AppConfig::VALID_TYPES) . '.'
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 

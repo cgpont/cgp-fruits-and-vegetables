@@ -2,11 +2,10 @@
 
 namespace App\Service;
 
+use App\Config\AppConfig;
+
 class FoodInputValidator
 {
-    private const VALID_TYPES = ['fruit', 'vegetable'];
-    private const VALID_UNITS = ['g', 'kg'];
-
     /**
      * Validates item input data.
      *
@@ -26,16 +25,16 @@ class FoodInputValidator
             $errors[] = 'Name is required and must be a string.';
         }
 
-        if (empty($data['type']) || !in_array($data['type'], self::VALID_TYPES)) {
-            $errors[] = 'Type must be one of: ' . implode(', ', self::VALID_TYPES) . '.';
+        if (empty($data['type']) || !in_array($data['type'], AppConfig::VALID_TYPE)) {
+            $errors[] = 'Type must be one of: ' . implode(', ', AppConfig::VALID_TYPE) . '.';
         }
 
         if (empty($data['quantity']) || !is_numeric($data['quantity']) || $data['quantity'] <= 0) {
             $errors[] = 'Quantity is required and must be a positive number.';
         }
 
-        if (empty($data['unit']) || !in_array($data['unit'], self::VALID_UNITS)) {
-            $errors[] = 'Unit must be one of: ' . implode(', ', self::VALID_UNITS) . '.';
+        if (empty($data['unit']) || !in_array($data['unit'], AppConfig::VALID_UNITS)) {
+            $errors[] = 'Unit must be one of: ' . implode(', ', AppConfig::VALID_UNITS) . '.';
         }
 
         return [

@@ -2,6 +2,7 @@
 
 namespace App\Tests\Controller;
 
+use App\Config\AppConfig;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -18,7 +19,7 @@ class FoodControllerTest extends WebTestCase
 
         $responseData = json_decode($client->getResponse()->getContent(), true);
         $this->assertEquals('error', $responseData['status']);
-        $this->assertEquals('Type must be either "fruits" or "vegetables".', $responseData['message']);
+        $this->assertEquals('Type must be one of: ' . implode(', ', AppConfig::VALID_TYPES) . '.', $responseData['message']);
     }
 
     public function testListWithInvalidUnit()
@@ -31,7 +32,7 @@ class FoodControllerTest extends WebTestCase
 
         $responseData = json_decode($client->getResponse()->getContent(), true);
         $this->assertEquals('error', $responseData['status']);
-        $this->assertEquals('Type must be either "g" or "kg".', $responseData['message']);
+        $this->assertEquals('Unit must be one of: ' . implode(', ', AppConfig::VALID_UNITS) . '.', $responseData['message']);
     }
 
     public function testListWithValidTypeAndUnit()
@@ -116,7 +117,7 @@ class FoodControllerTest extends WebTestCase
 
         $responseData = json_decode($client->getResponse()->getContent(), true);
         $this->assertEquals('error', $responseData['status']);
-        $this->assertEquals('Type must be either "fruits" or "vegetables".', $responseData['message']);
+        $this->assertEquals('Type must be one of: ' . implode(', ', AppConfig::VALID_TYPES) . '.', $responseData['message']);
     }
 
     public function testRemoveNonExistentItem()
