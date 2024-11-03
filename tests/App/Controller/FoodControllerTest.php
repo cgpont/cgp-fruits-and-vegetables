@@ -126,11 +126,12 @@ class FoodControllerTest extends WebTestCase
 
         $client->request('DELETE', '/api/food/fruits/999');
 
-        $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
+        $this->assertEquals(Response::HTTP_BAD_REQUEST, $client->getResponse()->getStatusCode());
+
         $this->assertJson($client->getResponse()->getContent());
 
         $responseData = json_decode($client->getResponse()->getContent(), true);
-        $this->assertEquals('success', $responseData['status']);
-        $this->assertStringContainsString('Item with ID 999 removed from fruits', $responseData['message']);
+        $this->assertEquals('error', $responseData['status']);
+        $this->assertStringContainsString('Item with ID 999 not found', $responseData['message']);
     }
 }

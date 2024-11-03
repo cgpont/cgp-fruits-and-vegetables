@@ -42,6 +42,16 @@ abstract class AbstractFoodCollection
         );
     }
 
+    public function findById(int $itemId): ?array
+    {
+        foreach ($this->items as $item) {
+            if ($item['id'] === $itemId) {
+                return $item;
+            }
+        }
+        return null; // Item not found
+    }    
+
     protected function normalizeToGrams(float $quantity, string $unit): float
     {
         return $unit === 'kg' ? $quantity * 1000 : $quantity;

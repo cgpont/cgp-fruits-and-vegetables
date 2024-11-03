@@ -70,7 +70,12 @@ class FoodService
     public function removeItem(string $type, int $itemId): void
     {        
         $collection = $this->storage->get($type);
-        $collection->remove($itemId);        
+
+        if (!$collection->findById($itemId)) {
+            throw new \InvalidArgumentException("Item with ID $itemId not found in $type collection.");
+        }
+
+        $collection->remove($itemId);
         $this->storage->save($type, $collection);
     }    
 }

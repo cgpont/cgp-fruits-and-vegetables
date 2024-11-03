@@ -81,7 +81,17 @@ class FoodController extends AbstractController
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $this->foodService->removeItem($type, $id);
-        return new JsonResponse(['status' => 'success', 'message' => "Item with ID $id removed from $type"], JsonResponse::HTTP_OK);
+        try {
+            $this->foodService->removeItem($type, $id);
+            return new JsonResponse([
+                'status' => 'success',
+                'message' => "Item with ID $id removed from $type"
+            ], JsonResponse::HTTP_OK);
+        } catch (\InvalidArgumentException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
     }    
 }
